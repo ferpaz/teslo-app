@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:teslo_shop/features/shared/shared.dart';
 
+import 'package:teslo_shop/features/auth/presentation/providers/providers.dart';
+import 'package:teslo_shop/features/shared/shared.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -15,7 +17,7 @@ class LoginScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
-        body: GeometricalBackground( 
+        body: GeometricalBackground(
           child: SingleChildScrollView(
             physics: const ClampingScrollPhysics(),
             child: Column(
@@ -23,13 +25,13 @@ class LoginScreen extends StatelessWidget {
               children: [
                 const SizedBox( height: 80 ),
                 // Icon Banner
-                const Icon( 
-                  Icons.production_quantity_limits_rounded, 
+                const Icon(
+                  Icons.production_quantity_limits_rounded,
                   color: Colors.white,
                   size: 100,
                 ),
                 const SizedBox( height: 80 ),
-    
+
                 Container(
                   height: size.height - 260, // 80 los dos sizebox y 100 el ícono
                   width: double.infinity,
@@ -48,11 +50,13 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-class _LoginForm extends StatelessWidget {
+class _LoginForm extends ConsumerWidget {
   const _LoginForm();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+
+    final loginForm = ref.watch(loginFormProvider);
 
     final textStyles = Theme.of(context).textTheme;
 
@@ -64,17 +68,21 @@ class _LoginForm extends StatelessWidget {
           Text('Login', style: textStyles.titleLarge ),
           const SizedBox( height: 90 ),
 
-          const CustomTextFormField(
+          CustomTextFormField(
             label: 'Correo',
             keyboardType: TextInputType.emailAddress,
+            errorMessage: loginForm.isFormPosted ? loginForm.email.errorMessage : null,
+            onChanged: ref.read(loginFormProvider.notifier).onEmailChanged,
           ),
           const SizedBox( height: 30 ),
 
-          const CustomTextFormField(
+          CustomTextFormField(
             label: 'Contraseña',
             obscureText: true,
+            errorMessage: loginForm.isFormPosted ? loginForm.password.errorMessage : null,
+            onChanged: ref.read(loginFormProvider.notifier).onPasswordChanged,
           ),
-    
+
           const SizedBox( height: 30 ),
 
           SizedBox(
@@ -84,7 +92,7 @@ class _LoginForm extends StatelessWidget {
               text: 'Ingresar',
               buttonColor: Colors.black,
               onPressed: (){
-
+                ref.read(loginFormProvider.notifier).onFormSubmit();
               },
             )
           ),
@@ -96,7 +104,7 @@ class _LoginForm extends StatelessWidget {
             children: [
               const Text('¿No tienes cuenta?'),
               TextButton(
-                onPressed: ()=> context.push('/register'), 
+                onPressed: ()=> context.push('/register'),
                 child: const Text('Crea una aquí')
               )
             ],
