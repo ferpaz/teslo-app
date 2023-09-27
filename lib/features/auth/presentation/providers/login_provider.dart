@@ -1,18 +1,22 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:formz/formz.dart';
+import 'package:teslo_shop/features/auth/presentation/providers/auth_provider.dart';
 import 'package:teslo_shop/features/shared/shared.dart';
 
 
 // El proveedor de estado
 final loginFormProvider = StateNotifierProvider.autoDispose<LoginFormNotifier, LoginFormState>((ref) {
-  return LoginFormNotifier();
+  final loginUserCallback = ref.watch(authProvider.notifier).signIn;
+  return LoginFormNotifier(loginUserCallback);
 });
 
 
 // El notificador
 class LoginFormNotifier extends StateNotifier<LoginFormState> {
-  LoginFormNotifier(): super( const LoginFormState());
+  final Function(String email, String password) loginUserCallback;
+
+  LoginFormNotifier(this.loginUserCallback): super( const LoginFormState());
 
   onEmailChanged(String email) {
     var newEmail = Email.dirty(email);
@@ -30,11 +34,11 @@ class LoginFormNotifier extends StateNotifier<LoginFormState> {
     );
   }
 
-  onFormSubmit() {
+  onFormSubmit() async {
     _toucheEveryField();
     if (!state.isValid) return;
 
-    print (state);
+    await loginUserCallback(state.email.value, state.password.value);
   }
 
   _toucheEveryField() {
