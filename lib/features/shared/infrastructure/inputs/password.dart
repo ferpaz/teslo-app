@@ -1,11 +1,10 @@
 import 'package:formz/formz.dart';
 
 // Define input validation errors
-enum PasswordError { empty, length, format }
+enum PasswordError { empty, length, format, notMatch }
 
 // Extend FormzInput and provide the input type and error type.
 class Password extends FormzInput<String, PasswordError> {
-
 
   static final RegExp passwordRegExp = RegExp(
     r'(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$',

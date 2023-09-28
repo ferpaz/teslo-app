@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:teslo_shop/features/auth/presentation/providers/providers.dart';
 import 'package:teslo_shop/features/shared/shared.dart';
 
 
@@ -16,7 +18,7 @@ class RegisterScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
-        body: GeometricalBackground( 
+        body: GeometricalBackground(
           child: SingleChildScrollView(
             physics: const ClampingScrollPhysics(),
             child: Column(
@@ -31,7 +33,7 @@ class RegisterScreen extends StatelessWidget {
                       onPressed: (){
                         if ( !context.canPop() ) return;
                         context.pop();
-                      }, 
+                      },
                       icon: const Icon( Icons.arrow_back_rounded, size: 40, color: Colors.white )
                     ),
                     const Spacer(flex: 1),
@@ -41,7 +43,7 @@ class RegisterScreen extends StatelessWidget {
                 ),
 
                 const SizedBox( height: 50 ),
-    
+
                 Container(
                   height: size.height - 260, // 80 los dos sizebox y 100 el ícono
                   width: double.infinity,
@@ -60,11 +62,33 @@ class RegisterScreen extends StatelessWidget {
   }
 }
 
-class _RegisterForm extends StatelessWidget {
+class _RegisterForm extends ConsumerWidget {
   const _RegisterForm();
 
+  void showSnackbar(BuildContext context, String errorMessage) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(errorMessage),
+        backgroundColor: Colors.red.shade900,
+        showCloseIcon: true,
+        duration: const Duration(seconds: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      )
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+
+    final registerForm = ref.watch(registerFormProvider);
+
+    ref.listen(authProvider, (previous, next) {
+      if (next.errorMessage.isEmpty) return;
+      showSnackbar(context, next.errorMessage);
+     });
+
+    final authState = ref.watch(authProvider);
 
     final textStyles = Theme.of(context).textTheme;
 
@@ -72,34 +96,42 @@ class _RegisterForm extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 50),
       child: Column(
         children: [
-          const SizedBox( height: 50 ),
+          const Spacer(),
           Text('Nueva cuenta', style: textStyles.titleMedium ),
-          const SizedBox( height: 50 ),
+          const Spacer(),
 
-          const CustomTextFormField(
+          CustomTextFormField(
             label: 'Nombre completo',
-            keyboardType: TextInputType.emailAddress,
+            keyboardType: TextInputType.name,
+            errorMessage: registerForm.isFormPosted ? registerForm.fullName.errorMessage : null,
+            onChanged: ref.read(registerFormProvider.notifier).onFullNameChanged,
           ),
           const SizedBox( height: 30 ),
 
-          const CustomTextFormField(
+          CustomTextFormField(
             label: 'Correo',
             keyboardType: TextInputType.emailAddress,
+            errorMessage: registerForm.isFormPosted ? registerForm.email.errorMessage : null,
+            onChanged: ref.read(registerFormProvider.notifier).onEmailChanged,
           ),
           const SizedBox( height: 30 ),
 
-          const CustomTextFormField(
+          CustomTextFormField(
             label: 'Contraseña',
             obscureText: true,
+            errorMessage: registerForm.isFormPosted ? registerForm.password.errorMessage : null,
+            onChanged: ref.read(registerFormProvider.notifier).onPasswordChanged,
           ),
-    
+
           const SizedBox( height: 30 ),
 
-          const CustomTextFormField(
+          CustomTextFormField(
             label: 'Repita la contraseña',
             obscureText: true,
+            errorMessage: registerForm.isFormPosted ? registerForm.confirmPassword.errorMessage : null,
+            onChanged: ref.read(registerFormProvider.notifier).onConfirmPasswordChanged,
           ),
-    
+
           const SizedBox( height: 30 ),
 
           SizedBox(
@@ -109,12 +141,15 @@ class _RegisterForm extends StatelessWidget {
               text: 'Crear',
               buttonColor: Colors.black,
               onPressed: (){
-
+                ref.read(registerFormProvider.notifier).onFormSubmit();
+                if (registerForm.isValid && authState.status == AuthStatus.authenticated) {
+                    //context.go('/');
+                }
               },
             )
           ),
 
-          const Spacer( flex: 2 ),
+          const Spacer(flex: 2,),
 
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -126,14 +161,14 @@ class _RegisterForm extends StatelessWidget {
                     return context.pop();
                   }
                   context.go('/login');
-                  
-                }, 
+
+                },
                 child: const Text('Ingresa aquí')
               )
             ],
           ),
 
-          const Spacer( flex: 1),
+          const Spacer(),
         ],
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:formz/formz.dart';
+
 import 'package:teslo_shop/features/auth/presentation/providers/auth_provider.dart';
 import 'package:teslo_shop/features/shared/shared.dart';
 
@@ -91,14 +92,12 @@ class LoginFormState extends Equatable {
     bool? isSubmitting,
     bool? isValid,
     bool? isFormPosted,
-  }) {
-    return LoginFormState(
+  }) => LoginFormState(
       email: email ?? this.email,
       password: password ?? this.password,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       isValid: isValid ?? this.isValid,
       isFormPosted: isFormPosted ?? this.isFormPosted,
-    );
-  }
+  );
 }
 

@@ -43,8 +43,26 @@ class AuthDataSource extends AuthDatasourceBase {
   }
 
   @override
-  Future<User> register(String email, String password, String fullName) {
-    // TODO: implement register
-    throw UnimplementedError();
+  Future<User> register(String email, String password, String fullName) async {
+    // check if email already exists using a post request
+    try {
+      final response = await dio.post('/auth/register', data: {
+        'email': email,
+        'password': password,
+        'fullName': fullName,
+      });
+
+      final user = UserMapper.jsonToEntity(response.data);
+      return user;
+
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401)  throw InvalidCredentialsException(message: e.response?.data['message']);
+      if (e.response?.statusCode == 400)  throw EmailAlreadyInUseException(message: e.response?.data['message']);
+
+      throw CustomException(message: e.response?.statusMessage ?? e.message ?? 'Error desconocido');
+
+    } catch (e) {
+      throw CustomException(message: e.toString());
+    }
   }
 }

@@ -18,8 +18,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }): super(const AuthState());
 
   Future<void> signIn(String email, String password) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-
     try {
       final user = await authRepository.login(email, password);
       _setLoggedUser(user);
@@ -31,7 +29,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       singOut(e.message);
     }
     catch (e) {
-      singOut('Error desconocido');
+      singOut('Error desconocido: $e');
     }
   }
 
@@ -54,9 +52,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   void registerUser(String email, String password, String fullName) async {
-    final user = await authRepository.register(email, password, fullName);
+    await Future.delayed(const Duration(milliseconds: 500));
 
-    _setLoggedUser(user);
+    try {
+      final user = await authRepository.register(email, password, fullName);
+      _setLoggedUser(user);
+
+    } on EmailAlreadyInUseException catch (e) {
+      singOut(e.message);
+    } on CustomException catch (e) {
+      singOut(e.message);
+    } catch (e) {
+      singOut('Error desconocido: $e');
+    }
+
   }
 
   void _setLoggedUser(User user) async {
