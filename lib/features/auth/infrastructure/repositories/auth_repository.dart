@@ -12,7 +12,7 @@ class AuthRepository extends AuthRepositoryBase {
 
 
   @override
-  Future<User> checkAuthStatus() => _authDatasource.checkAuthStatus();
+  Future<User> checkAuthStatus(String token) => _authDatasource.checkAuthStatus(token);
 
   @override
   Future<User> login(String email, String password) => _authDatasource.login(email, password);

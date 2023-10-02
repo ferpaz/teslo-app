@@ -19,7 +19,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
   AuthNotifier({
     required this.authRepository,
     required this.keyValueStorageService,
-  }): super(const AuthState());
+  }): super(const AuthState()) {
+    checkAuthStatus();
+  }
+
+  void checkAuthStatus() async {
+    var token = await keyValueStorageService.getValue<String>('token');
+    if (token == null || token == '') {
+      singOut();
+      return;
+    }
+
+    try {
+      final user = await authRepository.checkAuthStatus(token);
+      _setLoggedUser(user);
+    } catch (e) {
+      singOut();
+    }
+  }
 
   Future<void> signIn(String email, String password) async {
     try {
@@ -44,15 +61,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
       status: AuthStatus.notAuthenticated,
       user: null,
       errorMessage: errorMessage,
-    );
-  }
-
-  void checkAuthStatus() async {
-    final user = await authRepository.checkAuthStatus();
-
-    state = state.copyWith(
-      status: AuthStatus.checking,
-      user: user,
     );
   }
 
