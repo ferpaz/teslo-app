@@ -8,7 +8,14 @@ class User extends Equatable{
   final bool isActive;
   final List<String> roles;
 
-  const User({required this.id, required this.email, required this.fullName, required this.token, required this.isActive, required this.roles});
+  const User({
+    required this.id,
+    required this.email,
+    required this.fullName,
+    required this.token,
+    required this.isActive,
+    required this.roles
+  });
 
   bool get isAdmin => roles.contains('admin');
 
