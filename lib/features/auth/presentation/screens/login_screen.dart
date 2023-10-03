@@ -76,8 +76,6 @@ class _LoginForm extends ConsumerWidget {
       showSnackbar(context, next.errorMessage);
      });
 
-    final authState = ref.watch(authProvider);
-
     final textStyles = Theme.of(context).textTheme;
 
     return Padding(
@@ -111,12 +109,9 @@ class _LoginForm extends ConsumerWidget {
             child: CustomFilledButton(
               text: 'Ingresar',
               buttonColor: Colors.black,
-              onPressed: (){
-                ref.read(loginFormProvider.notifier).onFormSubmit();
-                if (loginForm.isValid && authState.status == AuthStatus.authenticated) {
-                    //context.go('/');
-                }
-              },
+              onPressed: loginForm.isSubmitting
+                ? null
+                : ref.read(loginFormProvider.notifier).onFormSubmit,
             )
           ),
 
@@ -127,7 +122,7 @@ class _LoginForm extends ConsumerWidget {
             children: [
               const Text('¿No tienes cuenta?'),
               TextButton(
-                onPressed: ()=> context.push('/register'),
+                onPressed: () => context.push('/register'),
                 child: const Text('Crea una aquí')
               )
             ],

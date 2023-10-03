@@ -26,35 +26,35 @@ class AuthNotifier extends StateNotifier<AuthState> {
   void checkAuthStatus() async {
     var token = await keyValueStorageService.getValue<String>('token');
     if (token == null || token == '') {
-      singOut();
+      await singOut();
       return;
     }
 
     try {
       final user = await authRepository.checkAuthStatus(token);
-      _setLoggedUser(user);
+      await _setLoggedUser(user);
     } catch (e) {
-      singOut();
+      await singOut();
     }
   }
 
   Future<void> signIn(String email, String password) async {
     try {
       final user = await authRepository.login(email, password);
-      _setLoggedUser(user);
+      await _setLoggedUser(user);
     }
     on InvalidCredentialsException catch (e) {
-      singOut(e.message);
+      await singOut(e.message);
     }
     on CustomException catch (e) {
-      singOut(e.message);
+      await singOut(e.message);
     }
     catch (e) {
-      singOut('Error desconocido: $e');
+      await singOut('Error desconocido: $e');
     }
   }
 
-  void singOut([String errorMessage = '']) async {
+  Future<void> singOut([String errorMessage = '']) async {
     await keyValueStorageService.removeKey('token');
 
     state = state.copyWith(
@@ -64,24 +64,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
   }
 
-  void registerUser(String email, String password, String fullName) async {
+  Future<void> registerUser(String email, String password, String fullName) async {
     await Future.delayed(const Duration(milliseconds: 500));
 
     try {
       final user = await authRepository.register(email, password, fullName);
-      _setLoggedUser(user);
+      await _setLoggedUser(user);
 
     } on EmailAlreadyInUseException catch (e) {
-      singOut(e.message);
+      await singOut(e.message);
     } on CustomException catch (e) {
-      singOut(e.message);
+      await singOut(e.message);
     } catch (e) {
-      singOut('Error desconocido: $e');
+      await singOut('Error desconocido: $e');
     }
 
   }
 
-  void _setLoggedUser(User user) async {
+  Future<void> _setLoggedUser(User user) async {
     await keyValueStorageService.setValue('token', user.token);
 
     state = state.copyWith(

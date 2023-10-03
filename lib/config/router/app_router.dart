@@ -1,30 +1,60 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:teslo_shop/config/router/app_router_notifier.dart';
 import 'package:teslo_shop/features/auth/auth.dart';
+import 'package:teslo_shop/features/auth/presentation/providers/providers.dart';
 import 'package:teslo_shop/features/products/products.dart';
 
-final appRouter = GoRouter(
-  initialLocation: '/check-auth-status',
-  routes: [
-    ///* Primera pantalla que se muestra
-    GoRoute(
-      path: '/check-auth-status',
-      builder: (context, state) => const CheckAuthStatusScreen(),
-    ),
+final goRouterProvider = Provider((ref) {
+  final goRouterNotifier = ref.read(goRouterNotifierProvider);
 
-    GoRoute(
-      path: '/login',
-      builder: (context, state) => const LoginScreen(),
-    ),
-    GoRoute(
-      path: '/register',
-      builder: (context, state) => const RegisterScreen(),
-    ),
+  return GoRouter(
+    initialLocation: '/splash',
+    refreshListenable: goRouterNotifier,
+    routes: [
+      ///* Primera pantalla que se muestra
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const CheckAuthStatusScreen(),
+      ),
 
-    ///* Product Routes
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const ProductsScreen(),
-    ),
-  ],
-  ///! TODO: Bloquear si no se está autenticado de alguna manera
-);
+      ///* Autenticacion
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => const RegisterScreen(),
+      ),
+
+      ///* Product Routes
+      GoRoute(
+        path: '/',
+        builder: (context, state) => const ProductsScreen(),
+      ),
+    ],
+
+    redirect: (context, state) {
+      final isGoingTo = state.subloc;
+      final authStatus = goRouterNotifier.authStatus;
+
+      if (isGoingTo == '/splash' && authStatus == AuthStatus.checking) return null;
+
+      if (authStatus == AuthStatus.notAuthenticated) {
+        if (isGoingTo == '/login' || isGoingTo == '/register') return null;
+
+        return '/login';
+      }
+
+      if (authStatus == AuthStatus.authenticated) {
+        if (isGoingTo == '/login' || isGoingTo == '/register' || isGoingTo == '/splash') return '/';
+      }
+
+      // Aqui todas las rutas que se desea ir, ya estan autenticados
+      // Entonces aquí podría verificarse seguridad de acceso a rutas por roles, etc.
+
+      return null;
+    },
+  );
+});
