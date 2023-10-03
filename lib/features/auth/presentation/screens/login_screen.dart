@@ -91,6 +91,7 @@ class _LoginForm extends ConsumerWidget {
             keyboardType: TextInputType.emailAddress,
             errorMessage: loginForm.isFormPosted ? loginForm.email.errorMessage : null,
             onChanged: ref.read(loginFormProvider.notifier).onEmailChanged,
+            textInputAction: TextInputAction.next,
           ),
           const SizedBox( height: 30 ),
 
@@ -99,6 +100,8 @@ class _LoginForm extends ConsumerWidget {
             obscureText: true,
             errorMessage: loginForm.isFormPosted ? loginForm.password.errorMessage : null,
             onChanged: ref.read(loginFormProvider.notifier).onPasswordChanged,
+            onFieldSubmitted: (_) => ref.read(loginFormProvider.notifier).onFormSubmit(),
+            textInputAction: TextInputAction.done,
           ),
 
           const SizedBox( height: 30 ),
@@ -115,7 +118,7 @@ class _LoginForm extends ConsumerWidget {
             )
           ),
 
-          const Spacer( flex: 2 ),
+          const Spacer( flex: 2, ),
 
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -128,7 +131,7 @@ class _LoginForm extends ConsumerWidget {
             ],
           ),
 
-          const Spacer( flex: 1),
+          const Spacer( flex: 1, ),
         ],
       ),
     );

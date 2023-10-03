@@ -88,8 +88,6 @@ class _RegisterForm extends ConsumerWidget {
       showSnackbar(context, next.errorMessage);
      });
 
-    final authState = ref.watch(authProvider);
-
     final textStyles = Theme.of(context).textTheme;
 
     return Padding(
@@ -105,7 +103,9 @@ class _RegisterForm extends ConsumerWidget {
             keyboardType: TextInputType.name,
             errorMessage: registerForm.isFormPosted ? registerForm.fullName.errorMessage : null,
             onChanged: ref.read(registerFormProvider.notifier).onFullNameChanged,
+            textInputAction: TextInputAction.next,
           ),
+
           const SizedBox( height: 30 ),
 
           CustomTextFormField(
@@ -113,7 +113,9 @@ class _RegisterForm extends ConsumerWidget {
             keyboardType: TextInputType.emailAddress,
             errorMessage: registerForm.isFormPosted ? registerForm.email.errorMessage : null,
             onChanged: ref.read(registerFormProvider.notifier).onEmailChanged,
+            textInputAction: TextInputAction.next,
           ),
+
           const SizedBox( height: 30 ),
 
           CustomTextFormField(
@@ -121,6 +123,7 @@ class _RegisterForm extends ConsumerWidget {
             obscureText: true,
             errorMessage: registerForm.isFormPosted ? registerForm.password.errorMessage : null,
             onChanged: ref.read(registerFormProvider.notifier).onPasswordChanged,
+            textInputAction: TextInputAction.next,
           ),
 
           const SizedBox( height: 30 ),
@@ -130,6 +133,8 @@ class _RegisterForm extends ConsumerWidget {
             obscureText: true,
             errorMessage: registerForm.isFormPosted ? registerForm.confirmPassword.errorMessage : null,
             onChanged: ref.read(registerFormProvider.notifier).onConfirmPasswordChanged,
+            onFieldSubmitted: (_) => ref.read(registerFormProvider.notifier).onFormSubmit(),
+            textInputAction: TextInputAction.done,
           ),
 
           const SizedBox( height: 30 ),
@@ -140,12 +145,9 @@ class _RegisterForm extends ConsumerWidget {
             child: CustomFilledButton(
               text: 'Crear',
               buttonColor: Colors.black,
-              onPressed: (){
-                ref.read(registerFormProvider.notifier).onFormSubmit();
-                if (registerForm.isValid && authState.status == AuthStatus.authenticated) {
-                    //context.go('/');
-                }
-              },
+              onPressed: registerForm.isSubmitting
+                ? null
+                : ref.read(registerFormProvider.notifier).onFormSubmit,
             )
           ),
 
@@ -156,19 +158,13 @@ class _RegisterForm extends ConsumerWidget {
             children: [
               const Text('¿Ya tienes cuenta?'),
               TextButton(
-                onPressed: (){
-                  if ( context.canPop()){
-                    return context.pop();
-                  }
-                  context.go('/login');
-
-                },
+                onPressed: () => context.canPop() ? context.pop() : context.go('/login'),
                 child: const Text('Ingresa aquí')
               )
             ],
           ),
 
-          const Spacer(),
+          const Spacer( flex: 1, ),
         ],
       ),
     );
