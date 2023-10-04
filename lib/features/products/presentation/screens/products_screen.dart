@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:teslo_shop/features/products/presentation/providers/providers.dart';
 import 'package:teslo_shop/features/products/presentation/widgets/widgets.dart';
@@ -29,7 +30,9 @@ class ProductsScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         label: const Text('Nuevo producto'),
         icon: const Icon( Icons.add ),
-        onPressed: () {},
+        onPressed: () {
+          context.push('/product/new');
+        },
       ),
     );
   }
@@ -76,7 +79,10 @@ class _ProductsViewState extends ConsumerState<_ProductsView> {
         mainAxisSpacing: 20,
         crossAxisSpacing: 20,
         itemCount: productsState.products.length,
-        itemBuilder: (context, index) => ProductCard( product: productsState.products[index] ),
+        itemBuilder: (context, index) => GestureDetector(
+          onTap: () => context.push('/product/${productsState.products[index].id}'),
+          child: ProductCard( product: productsState.products[index] )
+        ),
       ));
   }
 }
