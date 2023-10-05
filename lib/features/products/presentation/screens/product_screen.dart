@@ -1,25 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:teslo_shop/features/products/presentation/providers/providers.dart';
+import 'package:teslo_shop/features/shared/shared.dart';
 
-class ProductScreen extends ConsumerStatefulWidget {
+import 'product_view.dart';
+
+class ProductScreen extends ConsumerWidget {
   final String productId;
-
-  bool get isNew => productId == 'new';
 
   const ProductScreen({ super.key, required this.productId });
 
   @override
-  ProductScreenState createState() => ProductScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
 
-class ProductScreenState extends ConsumerState<ProductScreen> {
-  @override
-  Widget build(BuildContext context) {
+    final productState = ref.watch(productProvider(productId));
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.isNew ? 'Crear' : 'Editar'} Producto'),
+        title: Text('${productId == '' ? 'Crear' : 'Editar'} Producto'),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.camera_alt_outlined)
+          )],
       ),
-      body: Center(child: Text(widget.productId),)
+      body: productState.isLoading
+        ? const FullScreenLoader()
+        : ProductView(product: productState.product!),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        child: const Icon(Icons.save_as_outlined),
+      )
     );
   }
 }

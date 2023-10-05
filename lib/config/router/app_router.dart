@@ -34,11 +34,17 @@ final goRouterProvider = Provider((ref) {
         builder: (context, state) => const ProductsScreen(),
       ),
 
+      ///* Create Product
+      GoRoute(
+        path: '/new-product',
+        builder: (context, state) => const ProductScreen(productId: ''),
+      ),
+
       ///* Edit Product
       GoRoute(
         path: '/product/:id',
         builder: (context, state) => ProductScreen(
-          productId: state.params['id'] ?? 'no-id',
+          productId: state.params['id'] ?? ''
         ),
       ),
     ],
