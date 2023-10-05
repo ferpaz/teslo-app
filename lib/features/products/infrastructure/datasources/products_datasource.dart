@@ -28,9 +28,21 @@ class ProductsDatasource extends ProductsDatasourceBase {
   }
 
   @override
-  Future<Product> getProduct(String id) {
-    // TODO: implement getProduct
-    throw UnimplementedError();
+  Future<Product> getProduct(String id) async {
+    try {
+      final response = await dio.get('/products/$id');
+
+      final product = ProductMapper.jsonToEntity(response.data);
+      return product;
+
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404)  throw ProductNotExistsException(message: e.response?.data['message']);
+
+      throw CustomException(message: e.response?.statusMessage ?? e.message ?? 'Error desconocido');
+
+    } catch (e) {
+      throw CustomException(message: e.toString());
+    }
   }
 
   @override
