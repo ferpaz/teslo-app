@@ -44,8 +44,13 @@ class CustomProductField extends StatelessWidget {
 
     const borderRadius = Radius.circular(15);
 
+    final errorBorder = border.copyWith(
+      borderSide: const BorderSide( color: Colors.red, width: 1 ),
+      borderRadius: BorderRadius.circular(8)
+    );
+
     return Container(
-      // padding: const EdgeInsets.only(bottom: 0, top: 15),
+      padding: const EdgeInsets.only(bottom: 0, top: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
@@ -77,8 +82,8 @@ class CustomProductField extends StatelessWidget {
           floatingLabelStyle: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 15),
           enabledBorder: border,
           focusedBorder: border,
-          errorBorder: border.copyWith( borderSide: const BorderSide( color: Colors.transparent )),
-          focusedErrorBorder: border.copyWith( borderSide: const BorderSide( color: Colors.transparent )),
+          errorBorder: errorBorder,
+          focusedErrorBorder: errorBorder,
           isDense: true,
           label: label != null ? Text(label!) : null,
           hintText: hint,

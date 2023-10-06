@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:teslo_shop/features/products/domain/domain.dart';
+import 'package:teslo_shop/features/products/products.dart';
 import 'package:teslo_shop/features/shared/widgets/widgets.dart';
 
 
-class ProductView extends StatelessWidget {
+class ProductView extends ConsumerWidget {
 
   final Product product;
 
   const ProductView({super.key, required this.product});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+
+    final productForm = ref.watch(productFormProvider(product));
 
     final textStyles = Theme.of(context).textTheme;
 
@@ -24,11 +27,11 @@ class ProductView extends StatelessWidget {
             SizedBox(
               height: 300,
               width: 600,
-              child: _ImageGallery(images: product.images ),
+              child: _ImageGallery(images: productForm.images ),
             ),
 
             const SizedBox( height: 10 ),
-            Center(child: Text( product.title, style: textStyles.titleSmall )),
+            Center(child: Text( productForm.title.value, style: textStyles.titleSmall, textAlign: TextAlign.center, )),
             const SizedBox( height: 10 ),
             _ProductInformation( product: product ),
 
@@ -45,6 +48,7 @@ class _ProductInformation extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref ) {
+    final productForm = ref.watch(productFormProvider(product));
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -56,25 +60,37 @@ class _ProductInformation extends ConsumerWidget {
           CustomProductField(
             isTopField: true,
             label: 'Nombre',
-            initialValue: product.title,
+            initialValue: productForm.title.value,
+            onChanged: ref.read(productFormProvider(product).notifier).onTitleChanged,
+            errorMessage: productForm.title.errorMessage,
           ),
           CustomProductField(
             label: 'Slug',
-            initialValue: product.slug,
+            initialValue: productForm.slug.value,
+            onChanged: ref.read(productFormProvider(product).notifier).onSlugChanged,
+            errorMessage: productForm.slug.errorMessage,
           ),
           CustomProductField(
             isBottomField: true,
             label: 'Precio',
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            initialValue: product.price.toString(),
+            initialValue: productForm.price.value.toString(),
+            onChanged: (value) => ref.read(productFormProvider(product).notifier).onPriceChanged(double.tryParse(value) ?? -1),
+            errorMessage: productForm.price.errorMessage,
           ),
 
           const SizedBox(height: 15 ),
           const Text('Extras'),
 
-          _SizeSelector(selectedSizes: product.sizes ),
+          _SizeSelector(
+            selectedSizes: productForm.sizes,
+            onSelectionChanged: ref.read(productFormProvider(product).notifier).onSizesChanged,
+          ),
           const SizedBox(height: 5 ),
-          _GenderSelector( selectedGender: product.gender ),
+          _GenderSelector(
+            selectedGender: productForm.gender,
+            onSelectionChanged: ref.read(productFormProvider(product).notifier).onGenderChanged,
+          ),
 
 
           const SizedBox(height: 15 ),
@@ -82,14 +98,17 @@ class _ProductInformation extends ConsumerWidget {
             isTopField: true,
             label: 'Existencias',
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            initialValue: product.stock.toString(),
+            initialValue: productForm.stock.value.toString(),
+            onChanged: (value) => ref.read(productFormProvider(product).notifier).onStockChanged(int.tryParse(value) ?? -1),
+            errorMessage: productForm.stock.errorMessage,
           ),
 
           CustomProductField(
             maxLines: 6,
             label: 'Descripción',
             keyboardType: TextInputType.multiline,
-            initialValue: product.description,
+            initialValue: productForm.description,
+            onChanged: ref.read(productFormProvider(product).notifier).onDescriptionChanged,
           ),
 
           CustomProductField(
@@ -97,7 +116,8 @@ class _ProductInformation extends ConsumerWidget {
             maxLines: 2,
             label: 'Tags (Separados por coma)',
             keyboardType: TextInputType.multiline,
-            initialValue: product.tags.join(', '),
+            initialValue: productForm.tags,
+            onChanged: ref.read(productFormProvider(product).notifier).onTagsChanged,
           ),
 
 
@@ -112,13 +132,18 @@ class _ProductInformation extends ConsumerWidget {
 class _SizeSelector extends StatelessWidget {
   final List<String> selectedSizes;
   final List<String> sizes = const['XS','S','M','L','XL','XXL','XXXL'];
+  final Function(List<String> selectedsizes) onSelectionChanged;
 
-  const _SizeSelector({required this.selectedSizes});
+  const _SizeSelector({
+    required this.selectedSizes,
+    required this.onSelectionChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
     return SegmentedButton(
       emptySelectionAllowed: true,
+      multiSelectionEnabled: true,
       showSelectedIcon: false,
       segments: sizes.map((size) {
         return ButtonSegment(
@@ -126,11 +151,10 @@ class _SizeSelector extends StatelessWidget {
           label: Text(size, style: const TextStyle(fontSize: 10))
         );
       }).toList(),
-      selected: selectedSizes.isNotEmpty ? Set.from( selectedSizes ) : <dynamic>{},
+      selected: selectedSizes.isNotEmpty ? Set<String>.from( selectedSizes ) : <String>{},
       onSelectionChanged: (newSelection) {
-        print(newSelection);
+        onSelectionChanged(List.of(newSelection));
       },
-      multiSelectionEnabled: true,
     );
   }
 }
@@ -144,7 +168,12 @@ class _GenderSelector extends StatelessWidget {
     Icons.boy,
   ];
 
-  const _GenderSelector({required this.selectedGender});
+  final Function(String selectedGender) onSelectionChanged;
+
+  const _GenderSelector({
+    required this.selectedGender,
+    required this.onSelectionChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -153,16 +182,17 @@ class _GenderSelector extends StatelessWidget {
         multiSelectionEnabled: false,
         showSelectedIcon: false,
         style: const ButtonStyle(visualDensity: VisualDensity.compact ),
-        segments: genders.map((size) {
+        segments: genders.map((gender) {
           return ButtonSegment(
-            icon: Icon( genderIcons[ genders.indexOf(size) ] ),
-            value: size,
-            label: Text(size, style: const TextStyle(fontSize: 12))
+            icon: Icon( genderIcons[ genders.indexOf(gender) ] ),
+            value: gender,
+            label: Text(gender, style: const TextStyle(fontSize: 12))
           );
         }).toList(),
         selected: { selectedGender },
         onSelectionChanged: (newSelection) {
-          print(newSelection);
+          if (newSelection.isEmpty) return;
+          onSelectionChanged(newSelection.first);
         },
       ),
     );

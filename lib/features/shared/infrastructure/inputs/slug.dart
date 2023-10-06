@@ -7,7 +7,7 @@ enum SlugError { empty, format }
 class Slug extends FormzInput<String, SlugError> {
 
   static final RegExp slugRegExp = RegExp(
-    r'^[a-z0-9]+(?:-[a-z0-9]+)*$',
+    r'^[a-z0-9]+(?:_[a-z0-9]+)*$',
   );
 
   // Call super.pure to represent an unmodified form input.
