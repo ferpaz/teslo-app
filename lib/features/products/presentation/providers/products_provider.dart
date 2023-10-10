@@ -71,15 +71,19 @@ class ProductsNotifier extends StateNotifier<ProductsState> {
 
       return true;
     }
-    on InvalidCredentialsException catch (e) {
-      _setCreateUpdateProductErrorMessage(e.message);
-      rethrow;
-    }
-    on ProductBadRequestException catch (e) {
-      _setCreateUpdateProductErrorMessage(e.message);
-      rethrow;
-    }
-    on ProductNotExistsException catch (e) {
+    // on InvalidCredentialsException catch (e) {
+    //   _setCreateUpdateProductErrorMessage(e.message);
+    //   rethrow;
+    // }
+    // on ProductBadRequestException catch (e) {
+    //   _setCreateUpdateProductErrorMessage(e.message);
+    //   rethrow;
+    // }
+    // on ProductNotExistsException catch (e) {
+    //   _setCreateUpdateProductErrorMessage(e.message);
+    //   rethrow;
+    // }
+    on CustomException catch (e) {
       _setCreateUpdateProductErrorMessage(e.message);
       rethrow;
     }

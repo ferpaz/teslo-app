@@ -21,6 +21,30 @@ class ProductsDatasource extends ProductsDatasourceBase {
           )
         );
 
+  Future<String> _uploadImage(String image) async {
+    final fileName = image.split('/').last;
+
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(image, filename: fileName),
+    });
+
+    final response = await dio.post('/files/product', data: formData);
+    return response.data['image'];
+  }
+
+  Future <List<String>> _uploadImages(List<String> images) async {
+    final List<String> imagesToUpload = images.where((image) => image.contains('/')).toList();
+    final List<String> imagesIgnored = images.where((image) => !image.contains('/')).toList();
+
+    if (imagesToUpload.isEmpty) return [...imagesIgnored];
+
+    final List<Future<String>> uploadJob = imagesToUpload.map(_uploadImage).toList();
+
+    final imagesUploaded = await Future.wait(uploadJob);
+
+    return [ ...imagesUploaded,...imagesIgnored];
+  }
+
   @override
   Future<Product> createUpdateProduct(Map<String, dynamic> productLike) async {
     try {
@@ -29,6 +53,9 @@ class ProductsDatasource extends ProductsDatasourceBase {
       final String url = (productId == null || productId.trim() == '') ? '/products' : '/products/$productId';
 
       productLike.remove('id');
+
+      // Corrige las imagenes recien subidas al provider
+      productLike['images'] = await _uploadImages(productLike['images']);
 
       final response = await dio.request(
         url,

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:formz/formz.dart';
 
 import 'package:teslo_shop/config/config.dart';
+import 'package:teslo_shop/features/auth/infrastructure/errors/auth_errors.dart';
 import 'package:teslo_shop/features/products/domain/domain.dart';
 import 'package:teslo_shop/features/products/presentation/providers/providers.dart';
 import 'package:teslo_shop/features/shared/infrastructure/inputs/inputs.dart';
@@ -81,8 +82,8 @@ class ProductFormNotifier extends StateNotifier<ProductFormState> {
     state = state.copyWith(tags: value);
   }
 
-  void onImagesChanged(List<String> values) {
-    state = state.copyWith(images: values);
+  void addProductImage(String newImage) {
+    state = state.copyWith(images: [newImage, ...state.images]);
   }
 
   Future<bool> onFormSubmit() async {
@@ -112,6 +113,12 @@ class ProductFormNotifier extends StateNotifier<ProductFormState> {
         errorMessage: res ? '' : 'Error al guardar el producto',
       );
       return res;
+    }
+    on CustomException catch (e) {
+      state = state.copyWith(
+        errorMessage: e.message,
+      );
+      return false;
     }
     catch (e) {
       state = state.copyWith(

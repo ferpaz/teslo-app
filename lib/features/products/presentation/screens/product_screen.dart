@@ -42,12 +42,28 @@ class ProductScreen extends ConsumerWidget {
           title: Text('${productId == '' ? 'Crear' : 'Editar'} Producto'),
           actions: [
             IconButton(
-              onPressed: () {
+              onPressed: () async {
                 FocusScope.of(context).unfocus();
 
+                final photoPath = await ImagePickerCameraGalleryService().selectPhoto();
+                if (photoPath == null) return;
+
+                ref.read(productFormProvider(productState.product!).notifier).addProductImage(photoPath);
+              },
+              icon: const Icon(Icons.photo_library_outlined)
+            ),
+            IconButton(
+              onPressed: () async {
+                FocusScope.of(context).unfocus();
+
+                final photoPath = await ImagePickerCameraGalleryService().takePhoto();
+                if (photoPath == null) return;
+
+                ref.read(productFormProvider(productState.product!).notifier).addProductImage(photoPath);
               },
               icon: const Icon(Icons.camera_alt_outlined)
-            )],
+            ),
+          ],
         ),
         body: productState.isLoading
           ? const FullScreenLoader()
@@ -65,7 +81,7 @@ class ProductScreen extends ConsumerWidget {
                   showSnackbar(context);
                 }
                 else {
-                  showErrorSnackbar(context, productState.errorMessage);
+                  showErrorSnackbar(context, ref.read(productFormProvider(productState.product!)).errorMessage);
                 }
               });
           },
