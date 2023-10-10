@@ -19,24 +19,21 @@ class ProductView extends ConsumerWidget {
 
     final textStyles = Theme.of(context).textTheme;
 
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: ListView(
-        children: [
+    return ListView(
+      children: [
 
-            SizedBox(
-              height: 300,
-              width: 600,
-              child: _ImageGallery(images: productForm.images ),
-            ),
+          SizedBox(
+            height: 300,
+            width: 600,
+            child: _ImageGallery(images: productForm.images ),
+          ),
 
-            const SizedBox( height: 10 ),
-            Center(child: Text( productForm.title.value, style: textStyles.titleSmall, textAlign: TextAlign.center, )),
-            const SizedBox( height: 10 ),
-            _ProductInformation( product: product ),
+          const SizedBox( height: 10 ),
+          Center(child: Text( productForm.title.value, style: textStyles.titleSmall, textAlign: TextAlign.center, )),
+          const SizedBox( height: 10 ),
+          _ProductInformation( product: product ),
 
-          ],
-      ),
+        ],
     );
   }
 }
@@ -153,6 +150,7 @@ class _SizeSelector extends StatelessWidget {
       }).toList(),
       selected: selectedSizes.isNotEmpty ? Set<String>.from( selectedSizes ) : <String>{},
       onSelectionChanged: (newSelection) {
+        FocusScope.of(context).unfocus();
         onSelectionChanged(List.of(newSelection));
       },
     );
@@ -191,6 +189,7 @@ class _GenderSelector extends StatelessWidget {
         }).toList(),
         selected: { selectedGender },
         onSelectionChanged: (newSelection) {
+          FocusScope.of(context).unfocus();
           if (newSelection.isEmpty) return;
           onSelectionChanged(newSelection.first);
         },
@@ -198,7 +197,6 @@ class _GenderSelector extends StatelessWidget {
     );
   }
 }
-
 
 class _ImageGallery extends StatelessWidget {
   final List<String> images;

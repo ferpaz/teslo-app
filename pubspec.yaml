@@ -30,6 +30,6 @@ flutter:
 
   assets:
     - .env
-    - assets/loaders/
     - assets/images/
+    - assets/loaders/
     - google_fonts/montserrat_alternates/

@@ -7,19 +7,19 @@ import 'package:teslo_shop/features/products/presentation/providers/providers.da
 import 'package:teslo_shop/features/shared/infrastructure/inputs/inputs.dart';
 
 final productFormProvider = StateNotifierProvider.autoDispose.family<ProductFormNotifier, ProductFormState, Product>((ref, product) {
-  // create on submit callback
+  final createUpdateProductCallback = ref.watch(productsProvider.notifier).createUpdateProduct;
   return ProductFormNotifier(
     product: product,
-    //onSubmitCallback:
+    onSubmitCallback: createUpdateProductCallback
   );
 });
 
 class ProductFormNotifier extends StateNotifier<ProductFormState> {
-  final void Function(Map<String, dynamic> productLike)? onSubmitCallback;
+  final Future<bool> Function(Map<String, dynamic> productLike) onSubmitCallback;
 
   ProductFormNotifier({
-    this.onSubmitCallback,
     Product? product,
+    required this.onSubmitCallback,
   }) : super(ProductFormState(
     id: product?.id,
     title: Title.dirty(product?.title ?? ''),
@@ -90,9 +90,8 @@ class ProductFormNotifier extends StateNotifier<ProductFormState> {
 
     if (!state.isFormValid) return false;
 
-    if (onSubmitCallback == null) return false;
-
     final productLike = {
+      'id': state.id,
       'title': state.title.value,
       'price': state.price.value,
       'description': state.description,
@@ -106,7 +105,20 @@ class ProductFormNotifier extends StateNotifier<ProductFormState> {
       ).toList(),
     };
 
-    return true;
+
+    try {
+      final res = await onSubmitCallback(productLike);
+      state = state.copyWith(
+        errorMessage: res ? '' : 'Error al guardar el producto',
+      );
+      return res;
+    }
+    catch (e) {
+      state = state.copyWith(
+        errorMessage: e.toString(),
+      );
+      return false;
+    }
   }
 
   void _touchedEverything() {
@@ -132,6 +144,7 @@ class ProductFormState {
   final String description;
   final String tags;
   final List<String> images;
+  final String errorMessage;
 
   ProductFormState({
     this.isFormValid = false,
@@ -145,6 +158,7 @@ class ProductFormState {
     this.description = '',
     this.tags = '',
     this.images = const [],
+    this.errorMessage = ''
   });
 
   ProductFormState copyWith({
@@ -159,6 +173,7 @@ class ProductFormState {
     String? description,
     String? tags,
     List<String>? images,
+    String? errorMessage,
   }) => ProductFormState(
     isFormValid: isFormValid ?? this.isFormValid,
     id: id ?? this.id,
@@ -171,5 +186,6 @@ class ProductFormState {
     description: description ?? this.description,
     tags: tags ?? this.tags,
     images: images ?? this.images,
+    errorMessage: errorMessage ?? this.errorMessage,
   );
 }

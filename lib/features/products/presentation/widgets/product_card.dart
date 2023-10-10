@@ -17,7 +17,7 @@ class ProductCard extends StatelessWidget {
       child: Column(
         children: [
           if (product.images.isEmpty)
-            Image.asset('assets/images/no-image.png',
+            Image.asset('assets/images/no-image.jpg',
               fit: BoxFit.cover,
               width: double.infinity,
               height: 250,

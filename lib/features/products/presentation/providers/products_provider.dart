@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:teslo_shop/features/auth/infrastructure/infrastructure.dart';
 import 'package:teslo_shop/features/products/domain/domain.dart';
+import 'package:teslo_shop/features/products/infrastructure/errors/product_errors.dart';
 
 import 'products_repository_provider.dart';
 
@@ -30,47 +31,67 @@ class ProductsNotifier extends StateNotifier<ProductsState> {
       );
 
       if (products.isEmpty) {
-        setLastPage(true);
+        state = state.copyWith(isLastPage: true);
       }
       else {
-        _setProducts([...state.products, ...products]);
+        state = state.copyWith(products: [...state.products, ...products], isLastPage: false, offset: state.offset + state.limit);
       }
     }
     on InvalidCredentialsException catch (e) {
-      _setErrorMessage(e.message);
+      _setLoadNextPageErrorMessage(e.message);
     }
     catch (e) {
-      _setErrorMessage(e.toString());
+      _setLoadNextPageErrorMessage(e.toString());
     }
     finally {
       _setLoading(false);
     }
   }
 
-  void setOffset(int offset) {
-    state = state.copyWith(offset: offset);
-  }
-
-  void setLimit(int limit) {
-    state = state.copyWith(limit: limit);
-  }
-
-  void setLastPage(bool isLastPage) {
-    state = state.copyWith(isLastPage: isLastPage);
-  }
-
-  void _setProducts(List<Product> products) {
-    state = state.copyWith(products: products, isLastPage: false, offset: state.offset + state.limit);
-  }
-
   void _setLoading(bool isLoading) {
     state = state.copyWith(isLoading: isLoading);
   }
 
-  void _setErrorMessage(String errorMessage) {
+  void _setLoadNextPageErrorMessage(String errorMessage) {
     state = state.copyWith(errorMessage: errorMessage, products: const[], isLastPage: true, offset: 0);
   }
 
+  Future<bool> createUpdateProduct(Map<String, dynamic> productLike) async {
+    try {
+      final updatedProduct = await productRepository.createUpdateProduct(productLike);
+      final isProductInList = state.products.any((e) => e.id == updatedProduct.id);
+
+      if (!isProductInList) {
+        state = state.copyWith(products: [...state.products, updatedProduct], errorMessage: '');
+      }
+      else {
+        final updatedProducts = state.products.map((e) => e.id == updatedProduct.id ? updatedProduct : e).toList();
+        state = state.copyWith(products: updatedProducts, errorMessage: '');
+      }
+
+      return true;
+    }
+    on InvalidCredentialsException catch (e) {
+      _setCreateUpdateProductErrorMessage(e.message);
+      rethrow;
+    }
+    on ProductBadRequestException catch (e) {
+      _setCreateUpdateProductErrorMessage(e.message);
+      rethrow;
+    }
+    on ProductNotExistsException catch (e) {
+      _setCreateUpdateProductErrorMessage(e.message);
+      rethrow;
+    }
+    catch (e) {
+      _setCreateUpdateProductErrorMessage(e.toString());
+      rethrow;
+    }
+  }
+
+  void _setCreateUpdateProductErrorMessage(String errorMessage) {
+    state = state.copyWith(errorMessage: errorMessage);
+  }
 }
 
 class ProductsState {

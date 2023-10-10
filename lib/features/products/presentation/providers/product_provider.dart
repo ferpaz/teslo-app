@@ -38,7 +38,8 @@ class ProductNotifier extends StateNotifier<ProductState> {
           stock: 0,
           tags: const <String>[]
         ),
-        errorMessage: ''
+        errorMessage: '',
+        isLoading: false,
       );
       return;
     }
